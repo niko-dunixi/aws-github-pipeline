@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Pipeline to build, test, and deploy the qtest-collection JVM artifacts to Maven Central"
+
+Parameters:
+
+
+Resources:
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: QTest Library Pipeline
+      Stages:
+        -
+          Name: GitHub Source Repository
+          ActionTypeId:
+            Category: Source
+            Owner: paul-nelson-baker
+            Repo: qtest-library-collection
+            Branch: master
+            OAuthToken:
