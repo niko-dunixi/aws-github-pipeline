@@ -48,8 +48,17 @@ Resources:
             Action:
               - "logs:CreateLogStream"
               - "logs:CreateLogGroup"
+              - "logs:PutLogEvents"
+              - "logs:DescribeLogStreams"
             Resource:
               - "arn:aws:logs:*:*:*"
+          - Effect: Allow
+            Action:
+              - "s3:GetObject"
+              - "s3:PutObject"
+              - "s3:DeleteObject"
+            Resource:
+              - "Fn::Join": ["", ["arn:aws:s3:::", !Ref S3ArtifactBucket, "/*"]]
 
   CodePipelineAccessRole:
     Type: "AWS::IAM::Role"
