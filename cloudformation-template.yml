@@ -78,7 +78,7 @@ Resources:
               - "codecommit:CancelUploadArchive"
             Resource: "*"
 
-  JavaCodeBuildProject:
+  CodeBuildProject:
     Type: "AWS::CodeBuild::Project"
     Properties:
       Name: !Ref GitHubRepo
