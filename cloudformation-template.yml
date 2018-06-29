@@ -1,5 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Pipeline to build, test, and deploy the qtest-collection JVM artifacts to Maven Central"
+Description: >
+  Pipeline to build, test, and deploy the qtest-collection
+  JVM artifacts to Maven Central
 
 Parameters:
   GitHubPersonalAccessToken:
@@ -14,17 +16,63 @@ Parameters:
   GitHubBranch:
     Type: String
     Default: master
+  S3ArtifactBucket:
+    Type: String
+    Default: paulbaker-artifacts
+  S3ArtifactDirectory:
+    Type: String
+    Default: ephemeral-codebuild-items
 
 Resources:
+  CodePipelineAccessRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "codepipeline.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Path: "/"
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      Name: QTest Library Pipeline
+      Name: "qtest-library-pipeline"
+      ArtifactStore:
+        Type: S3
+        Location:
+          !Join ["", ["arn::aws::s3::", !Join ["/", [!Ref S3ArtifactBucket, !Ref S3ArtifactDirectory]]]]
+      RoleArn:
+        !Ref CodePipelineAccessRole
       Stages:
-        - Name: GitHub Source Repository
-          ActionTypeId:
-            Category: Source
-            Owner: !Ref GitHubOwner
-            Repo: !Ref GitHubRepo
-            Branch: !Ref GitHubBranch
-            OAuthToken: !Ref GitHubPersonalAccessToken
+        - Name: "Source"
+          Actions:
+            - Name: Source
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: 1
+                Provider: GitHub
+              Configuration:
+                Category: Source
+                Owner: !Ref GitHubOwner
+                Repo: !Ref GitHubRepo
+                Branch: !Ref GitHubBranch
+                OAuthToken: !Ref GitHubPersonalAccessToken
+              OutputArtifacts:
+                - Name: SourceCodeArtifact
+              RunOrder: 1
+        # - Name: "Build"
+        #   Actions:
+        #     - ActionTypeId:
+        #         ProjectName: "Build"
+        #         Category: Build
+        #         Owner: AWS
+        #         Version: 1
+        #         Provider: CodeBuild
+        #     - InputArifacts:
+        #         - Name: SourceCodeArtifact
+        #     - OutputArtifacts:
+        #         - Name: JavaBinaryArtifact
+        #     - RunOrder: 2
