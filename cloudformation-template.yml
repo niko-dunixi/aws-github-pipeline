@@ -35,6 +35,26 @@ Resources:
                 - "codepipeline.amazonaws.com"
             Action: "sts:AssumeRole"
       Path: "/"
+  # CodePipelineAccessRolePolicy:
+  #   Type: "AWS::IAM::Policy"
+  #   Properties:
+  #     Roles:
+  #       - "Ref": CodePipelineAccessRole
+  #     PolicyName: CodePipelineAccessRolePolicy
+  #     PolicyDocument:
+  #       Statement:
+  #         - Effect: Allow
+  #           Action:
+  #             - "s3:ListBucket"
+  #           Resource:
+  #             - "Fn::Join": ["", ["arn::aws::s3:::", !Ref S3ArtifactBucket]]
+  #         - Effect: Allow
+  #           Action:
+  #             - "s3:GetObject"
+  #             - "s3:PutObject"
+  #             - "s3:DeleteObject"
+  #           Resource:
+  #             - "Fn::Join": ["", ["arn::aws::s3:::", !Ref S3ArtifactBucket, "/*"]]
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
@@ -42,11 +62,11 @@ Resources:
       ArtifactStore:
         Type: S3
         Location:
-          !Join ["", ["arn::aws::s3::", !Join ["/", [!Ref S3ArtifactBucket, !Ref S3ArtifactDirectory]]]]
+          !Ref S3ArtifactBucket
       RoleArn:
-        !Ref CodePipelineAccessRole
+        !GetAtt [CodePipelineAccessRole, "Arn"]
       Stages:
-        - Name: "Source"
+        - Name: "github-source-code"
           Actions:
             - Name: Source
               ActionTypeId:
