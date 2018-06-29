@@ -66,7 +66,7 @@ Resources:
       RoleArn:
         !GetAtt [CodePipelineAccessRole, "Arn"]
       Stages:
-        - Name: "github-source-code"
+        - Name: "source"
           Actions:
             - Name: Source
               ActionTypeId:
@@ -75,7 +75,6 @@ Resources:
                 Version: 1
                 Provider: GitHub
               Configuration:
-                Category: Source
                 Owner: !Ref GitHubOwner
                 Repo: !Ref GitHubRepo
                 Branch: !Ref GitHubBranch
@@ -83,16 +82,18 @@ Resources:
               OutputArtifacts:
                 - Name: SourceCodeArtifact
               RunOrder: 1
-        # - Name: "Build"
-        #   Actions:
-        #     - ActionTypeId:
-        #         ProjectName: "Build"
-        #         Category: Build
-        #         Owner: AWS
-        #         Version: 1
-        #         Provider: CodeBuild
-        #     - InputArifacts:
-        #         - Name: SourceCodeArtifact
-        #     - OutputArtifacts:
-        #         - Name: JavaBinaryArtifact
-        #     - RunOrder: 2
+        - Name: "build"
+          Actions:
+            - Name: Build
+              InputArtifacts:
+                  - Name: SourceCodeArtifact
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref GitHubRepo
+              OutputArtifacts:
+                  - Name: JavaBinaryArtifact
+              RunOrder: 2
