@@ -2,9 +2,18 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: "Pipeline to build, test, and deploy the qtest-collection JVM artifacts to Maven Central"
 
 Parameters:
-  GithubPersonalAccessToken:
+  GitHubPersonalAccessToken:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Default: '/qtest-library-pipeline/github-access-token'
+  GitHubOwner:
+    Type: String
+    Default: paul-nelson-baker
+  GitHubRepo:
+    Type: String
+    Default: qtest-library-collection
+  GitHubBranch:
+    Type: String
+    Default: master
 
 Resources:
   CodePipeline:
@@ -12,11 +21,10 @@ Resources:
     Properties:
       Name: QTest Library Pipeline
       Stages:
-        -
-          Name: GitHub Source Repository
+        - Name: GitHub Source Repository
           ActionTypeId:
             Category: Source
-            Owner: paul-nelson-baker
-            Repo: qtest-library-collection
-            Branch: master
-            OAuthToken: !Ref GithubPersonalAccessToken
+            Owner: !Ref GitHubOwner
+            Repo: !Ref GitHubRepo
+            Branch: !Ref GitHubBranch
+            OAuthToken: !Ref GitHubPersonalAccessToken
