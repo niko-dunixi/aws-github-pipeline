@@ -4,6 +4,7 @@ Description: >
   JVM artifacts to Maven Central
 
 Parameters:
+  # GitHub Specific Params
   GitHubPersonalAccessToken:
     Type: 'AWS::SSM::Parameter::Value<String>'
     Default: '/qtest-library-pipeline/github-access-token'
@@ -16,6 +17,7 @@ Parameters:
   GitHubBranch:
     Type: String
     Default: master
+  # Artifact S3 Params
   S3ArtifactBucket:
     Type: String
     Default: paulbaker-artifacts
@@ -59,6 +61,11 @@ Resources:
               - "s3:DeleteObject"
             Resource:
               - "Fn::Join": ["", ["arn:aws:s3:::", !Ref S3ArtifactBucket, "/*"]]
+          - Effect: Allow
+            Action:
+              - "ssm:GetParameters"
+            Resource:
+              - "arn:aws:ssm:::parameter/qtest-library-pipeline/testing/*"
 
   CodePipelineAccessRole:
     Type: "AWS::IAM::Role"
@@ -95,11 +102,6 @@ Resources:
               - "Fn::Join": ["", ["arn:aws:s3:::", !Ref S3ArtifactBucket, "/*"]]
           - Effect: Allow
             Action:
-              # - "codecommit:GetBranch"
-              # - "codecommit:GetCommit"
-              # - "codecommit:UploadArchive"
-              # - "codecommit:GetUploadArchiveStatus"
-              # - "codecommit:CancelUploadArchive"
               - "codebuild:StartBuild"
               - "codebuild:BatchGetBuilds"
             Resource: "*"
@@ -109,6 +111,8 @@ Resources:
     Properties:
       Name: !Ref GitHubRepo
       Description: !Join ["", ["The codebuild project that builds the JVM artifacts for ", !Ref GitHubRepo]]
+      BadgeEnabled: false
+      TimeoutInMinutes: 5
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
@@ -146,7 +150,7 @@ Resources:
               OutputArtifacts:
                 - Name: SourceCodeArtifact
               RunOrder: 1
-        - Name: !Join ["-", [!Ref GitHubRepo, "build"]]
+        - Name: !Join ["-", [!Ref GitHubRepo, "build-push"]]
           Actions:
             - Name: Build
               InputArtifacts:
