@@ -24,10 +24,23 @@ Parameters:
     Default: ephemeral-codebuild-items
 
 Resources:
+  CodeBuildProjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "codebuild.amazonaws.com"
+            Action: "sts:AssumeRole"
+
   CodePipelineAccessRole:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
@@ -35,6 +48,7 @@ Resources:
                 - "codepipeline.amazonaws.com"
             Action: "sts:AssumeRole"
       Path: "/"
+
   CodePipelineAccessRolePolicy:
     Type: "AWS::IAM::Policy"
     Properties:
@@ -55,6 +69,30 @@ Resources:
               - "s3:DeleteObject"
             Resource:
               - "Fn::Join": ["", ["arn:aws:s3:::", !Ref S3ArtifactBucket, "/*"]]
+          - Effect: Allow
+            Action:
+              - "codecommit:GetBranch"
+              - "codecommit:GetCommit"
+              - "codecommit:UploadArchive"
+              - "codecommit:GetUploadArchiveStatus"
+              - "codecommit:CancelUploadArchive"
+            Resource: "*"
+
+  JavaCodeBuildProject:
+    Type: "AWS::CodeBuild::Project"
+    Properties:
+      Name: !Ref GitHubRepo
+      Description: !Join ["", ["The codebuild project that builds the JVM artifacts for ", !Ref GitHubRepo]]
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/java:openjdk-8
+      ServiceRole: !Ref CodeBuildProjectRole
+      Source:
+        Type: CODEPIPELINE
+      Artifacts:
+        Type: CODEPIPELINE
+
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
@@ -66,7 +104,7 @@ Resources:
       RoleArn:
         !GetAtt [CodePipelineAccessRole, "Arn"]
       Stages:
-        - Name: "source"
+        - Name: !Join ["-", [!Ref GitHubRepo, "source"]]
           Actions:
             - Name: Source
               ActionTypeId:
@@ -82,7 +120,7 @@ Resources:
               OutputArtifacts:
                 - Name: SourceCodeArtifact
               RunOrder: 1
-        - Name: "build"
+        - Name: !Join ["-", [!Ref GitHubRepo, "build"]]
           Actions:
             - Name: Build
               InputArtifacts:
