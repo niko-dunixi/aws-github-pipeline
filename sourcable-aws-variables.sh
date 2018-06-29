@@ -10,3 +10,5 @@ AWS_PROFILE=paulbaker
 # Export them so the terminal you're currently using has access to these values.
 export AWS_REGION
 export AWS_PROFILE
+
+echo "Setting AWS_PROFILE to ${AWS_PROFILE} and AWS_REGION to ${AWS_REGION}"
