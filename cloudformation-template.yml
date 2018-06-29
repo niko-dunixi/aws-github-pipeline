@@ -36,6 +36,21 @@ Resources:
                 - "codebuild.amazonaws.com"
             Action: "sts:AssumeRole"
 
+  CodeBuildProjectRolePolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      Roles:
+        - "Ref": CodeBuildProjectRole
+      PolicyName: CodeBuildProjectRolePolicy
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - "logs:CreateLogStream"
+              - "logs:CreateLogGroup"
+            Resource:
+              - "arn:aws:logs:*:*:*"
+
   CodePipelineAccessRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -71,11 +86,13 @@ Resources:
               - "Fn::Join": ["", ["arn:aws:s3:::", !Ref S3ArtifactBucket, "/*"]]
           - Effect: Allow
             Action:
-              - "codecommit:GetBranch"
-              - "codecommit:GetCommit"
-              - "codecommit:UploadArchive"
-              - "codecommit:GetUploadArchiveStatus"
-              - "codecommit:CancelUploadArchive"
+              # - "codecommit:GetBranch"
+              # - "codecommit:GetCommit"
+              # - "codecommit:UploadArchive"
+              # - "codecommit:GetUploadArchiveStatus"
+              # - "codecommit:CancelUploadArchive"
+              - "codebuild:StartBuild"
+              - "codebuild:BatchGetBuilds"
             Resource: "*"
 
   CodeBuildProject:
