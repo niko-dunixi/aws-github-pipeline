@@ -1,3 +1,5 @@
+%YAML 1.2
+---
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >
   Pipeline to build, test, and deploy the qtest-collection
